@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up / Sign In</title>
+    <style>
+        /* Global Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(to right, #f5e1a4, #fff);
+            animation: gradientAnimation 5s ease infinite;
+        }
+
+        @keyframes gradientAnimation {
+            0% {
+                background: linear-gradient(to right, #f5e1a4, #fff);
+            }
+            50% {
+                background: linear-gradient(to right, #ffeb99, #ffffff);
+            }
+            100% {
+                background: linear-gradient(to right, #f5e1a4, #fff);
+            }
+        }
+
+        .container {
+            background: #ffffff;
+            padding: 60px;
+            border-radius: 25px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+            width: 380px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            background-color: #f0f8ff;
+            border: 1px solid #dcdcdc;
+        }
+
+        .container h2 {
+            color: #d4af37;
+            margin-bottom: 15px;
+            font-size: 26px;
+            font-weight: bold;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #d4af37;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            border-color: #ffcc00;
+        }
+
+        .form-group button {
+            width: 100%;
+            padding: 12px;
+            background-color: #d4af37;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .form-group button:hover {
+            background-color: #ffcc00;
+        }
+
+        .toggle-link {
+            display: block;
+            margin-top: 15px;
+            color: #d4af37;
+            font-size: 14px;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .toggle-link:hover {
+            color: #ffcc00;
+            text-decoration: underline;
+        }
+
+        /* OTP Modal */
+        .otp-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            width: 300px;
+            text-align: center;
+            z-index: 1000;
+        }
+
+        .otp-modal input {
+            width: 80%;
+            padding: 10px;
+            margin-top: 15px;
+            border: 2px solid #d4af37;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .otp-modal button {
+            width: 45%;
+            padding: 12px;
+            background-color: #d4af37;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .otp-modal button:hover {
+            background-color: #ffcc00;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 id="form-title">Begin Your Journey</h2>
+        <form id="auth-form">
+          <div class="form-group" id="username-group">
+            <input type="text" id="username" placeholder="Enter your Name" required>
+          </div>
+          <div class="form-group" id="rollnumber-group">
+            <input type="text" id="rollno" placeholder="Enter your Roll Number" required>
+          </div>
+            <div class="form-group" id="name-group">
+                <input type="email" id="email" placeholder="Enter your Email" required>
+            </div>
+            <div class="form-group" id="password-group">
+                <input type="password" id="password" placeholder="Enter your Password" required>
+            </div>
+            <div class="form-group" id="confirm-password-group">
+                <input type="password" id="confirm-password" placeholder="Confirm your Password" required>
+            </div>
+            <div class="form-group">
+                <button type="submit" id="submit-button">Get Started</button>
+            </div>
+        </form>
+        <span class="toggle-link" id="toggle-form">Pick Up Your Journey</span>
+    </div>
+
+    <!-- OTP Modal -->
+    <div class="overlay" id="otp-overlay"></div>
+    <div class="otp-modal" id="otp-modal">
+        <h3>Enter OTP</h3>
+        <input type="text" id="otp-input" placeholder="Enter OTP" required>
+        <button id="verify-otp">Continue</button>
+        <button id="cancel-otp">Cancel</button>
+    </div>
+
+    <script type="text/javascript"
+        src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js">
+</script>
+<script type="text/javascript">
+   (function(){
+      emailjs.init({
+        publicKey: "AGxfyXzLNwHGYylYi",
+      });
+   })();
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const formTitle = document.getElementById("form-title");
+        const nameGroup = document.getElementById("name-group");
+        const confirmPasswordGroup = document.getElementById("confirm-password-group");
+        const submitButton = document.getElementById("submit-button");
+        const toggleForm = document.getElementById("toggle-form");
+        const otpModal = document.getElementById("otp-modal");
+        const otpOverlay = document.getElementById("otp-overlay");
+        const otpInput = document.getElementById("otp-input");
+        const verifyOtpButton = document.getElementById("verify-otp");
+        const cancelOtpButton = document.getElementById("cancel-otp");
+
+        let isSignUp = true;
+        let generatedOtp = null;
+
+        toggleForm.addEventListener("click", () => {
+            isSignUp = !isSignUp;
+
+            if (isSignUp) {
+                formTitle.textContent = "Begin Your Journey";
+                nameGroup.style.display = "block";
+                confirmPasswordGroup.style.display = "block";
+                submitButton.textContent = "Get Started";
+                toggleForm.textContent = "Pick Up Your Journey";
+            } else {
+                formTitle.textContent = "Resume Your Journey";
+                nameGroup.style.display = "block";
+                confirmPasswordGroup.style.display = "none";
+                submitButton.textContent = "Get Started";
+                toggleForm.textContent = "Start Your Journey Here";
+            }
+        });
+
+        // Handle form submission
+        document.getElementById("auth-form").addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            const confirmPassword = document.getElementById("confirm-password") ? document.getElementById("confirm-password").value : null;
+
+            // Email validation
+            if (!email.includes("@vitstudent.ac.in")) {
+                alert("Please enter a valid VIT student email address.");
+                return;
+            }
+
+            // Password validation for sign-up
+            if (isSignUp && password !== confirmPassword) {
+                alert("Passwords do not match.");
+                return;
+            }
+
+            const passwordPattern = /^(?=.*\d)(?=.*[!@#$%^&*])(?=.*[a-zA-Z]).{8,}$/;
+            if (!passwordPattern.test(password)) {
+                alert("Password must be at least 8 characters long and include at least one number and one special character.");
+                return;
+            }
+
+            // Generate OTP
+            generatedOtp = Math.floor(100000 + Math.random() * 900000); // Generate a 6-digit OTP
+            console.log("OTP Generated: ", generatedOtp); // For debugging purposes
+            sendOTPToEmail(email, generatedOtp);
+            // Send OTP to the email
+            // Show OTP modal
+            otpModal.style.display = "block";
+            otpOverlay.style.display = "block";
+        });
+
+        // Verify OTP
+        verifyOtpButton.addEventListener("click", () => {
+            const userOtp = otpInput.value;
+
+            if (parseInt(userOtp) === generatedOtp) {
+                alert("Sign Up successful!");
+                otpModal.style.display = "none";
+                otpOverlay.style.display = "none";
+                saveUserDataToMongoDB();
+            } else {
+                alert("Invalid OTP. Please try again.");
+            }
+        });
+
+        // Cancel OTP
+        cancelOtpButton.addEventListener("click", () => {
+            otpModal.style.display = "none";
+            otpOverlay.style.display = "none";
+            location.reload();
+        });
+    });
+
+    // Send OTP using EmailJS
+    async function sendOTPToEmail(Email, Otp) {
+        let parms = {
+            to_name : document.getElementById("username").value,
+            email : Email,
+            message : Otp,
+        }
+        emailjs.send("service_6n1rwgf","template_1taw4r1",parms).then(alert("OTP Sent!!!"))
+      }
+
+    // Simulate saving user data to MongoDB
+    async function saveUserDataToMongoDB() {
+        console.log("Saving user data to MongoDB");
+        return true;  // Assume success for now
+    }
+</script>
+
+</body>
+</html>
